@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS | Transacciones de Tarjetas</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --accent: #bb86fc;
+            --accent-secondary: #03dac6;
+            --danger: #cf6679;
+            --success: #4caf50;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #2c2c2c, #121212);
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--text-primary);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .logo span {
+            color: var(--accent);
+        }
+        
+        .header-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at top right, rgba(187, 134, 252, 0.1), transparent 70%);
+            z-index: 1;
+        }
+        
+        main {
+            flex: 1;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+        }
+        
+        .card-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .card-title svg {
+            fill: var(--accent-secondary);
+        }
+        
+        .header-bg {
+            background: rgba(187, 134, 252, 0.3) !important;
+        }
+        
+        .form-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+        
+        .form-group input,
+        .form-group select {
+            padding: 0.8rem;
+            font-size: 1rem;
+            background-color: var(--card-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--accent-secondary);
+            border-radius: 6px;
+            padding: 0.8rem 1.5rem;
+            transition: all 0.3s ease;
+            /* Estilos adicionales */
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: var(--accent);
+        }
+        
+        .transactions-list {
+            background-color: var(--card-bg);
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.2);
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+        
+        .transaction-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 0.8rem;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .transaction-icon {
+            background-color: var(--accent-secondary);
+            color: var(--card-bg);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-right: 1rem;
+        }
+        
+        .transaction-details {
+            flex: 1;
+        }
+        
+        .transaction-name {
+            font-weight: bold;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            margin-bottom: 0.3rem;
+        }
+        
+        .transaction-date {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        .transaction-amount {
+            font-weight: bold;
+            color: var(--text-secondary);
+        }
+        
+        .transaction-amount.debit {
+            color: var(--danger);
+        }
+        
+        .summary {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 2rem;
+        }
+        
+        .summary h3 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+        }
+        
+        .summary .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .summary .summary-item.total {
+            font-weight: bold;
+            color: var(--text-secondary);
+        }
+        
+        .file-info {
+            text-align: center;
+            margin-top: 1rem;
+        }
+        
+        .file-path {
+            margin-top: 0.5rem;
+            word-break: break-all;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">Digital<span>Boom</span></div>
+        <div class="header-bg"></div>
+    </header>
+    
+    <main>
+        <section class="card glow-effect">
+            <h2 class="card-title">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" 
+xmlns="http://www.w3.org/2000/svg">
+                    <path d="M20 4H4C2.89 4 2 4.89 2 6V18C2 19.11 2.89 20 4 20H20C21.11 20 22 19.11 22 18V6C22 4.89 21.11 4 20 4Z" stroke="#BB86FC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M2 10H22" stroke="#BB86FC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Nueva Transacción
+            </h2>
+            <form id="transaction-form">
+                <div class="form-container">
+                    <div class="form-group">
+                        <label for="card-number">Número de Tarjeta</label>
+                        <input type="text" id="card-number" placeholder="XXXX XXXX XXXX XXXX" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cvv">CVV</label>
+                        <input type="text" id="cvv" placeholder="123" maxlength="4" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="expiry-date">Fecha de Vencimiento</label>
+                        <input type="text" id="expiry-date" placeholder="MM/AA" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="amount">Monto</label>
+                        <input type="number" id="amount" placeholder="0.00" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="concept">Concepto</label>
+                        <input type="text" id="concept" placeholder="Descripción de la transacción" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="type">Tipo</label>
+                        <select id="type" required>
+                            <option value="credit">Crédito</option>
+                            <option value="debit">Débito</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" id="submit-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" 
+xmlns="http://www.w3.org/2000/svg">
+                        <path d="M22 2L11 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Procesar Transacción
+                </button>
+            </form>
+            
+            <div class="file-info">
+                <p style="font-size: 1rem; text-align: center; color: var(--accent); margin: 15px 0;">Gracias por su preferencia</p>
+            </div>
+            <div id="transactions-list" class="transactions-list"></div>
+        </section>
+        
+        <section class="card">
+            <h2 class="card-title">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" 
+xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="#03DAC6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="#03DAC6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13" stroke="#03DAC6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89318 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88" stroke="#03DAC6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                ¡MULTIPLICA TUS SEGUIDORES AHORA!
+            </h2>
+            
+            <div class="promo-container" style="padding: 20px 0; text-align: center;">
+                <h3 style="font-size: 2.5rem; margin-bottom: 20px; background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">CRECE TU AUDIENCIA COMO NUNCA ANTES</h3>
+                
+                <div style="background-color: rgba(255,255,255,0.05); border-radius: 15px; padding: 25px; margin-bottom: 30px; position: relative; overflow: hidden;">
+                    <div style="position: absolute; top: 0; right: 0; width: 150px; height: 150px; background: radial-gradient(circle at center, rgba(187,134,252,0.3), transparent); border-radius: 50%; transform: translate(30%, -30%);"></div>
+                    
+                    <p style="font-size: 1.2rem; margin-bottom: 20px; color: var(--text-primary);">Nuestros <strong style="color: var(--accent);">bots premium</strong> te garantizan un crecimiento exponencial en tus redes sociales:</p>
+                    
+                    <ul style="list-style-type: none; padding: 0; text-align: left; max-width: 800px; margin: 0 auto;">
+                        <li style="display: flex; align-items: center; margin-bottom: 15px; background-color: rgba(3,218,198,0.1); padding: 15px; border-radius: 10px;">
+                            <span style="background-color: var(--accent); color: black; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-weight: bold;">1</span>
+                            <span style="font-size: 1.1rem;"><strong style="color: var(--accent-secondary);">+10,000 seguidores</strong> en tan solo 24 horas - ¡Garantizado!</span>
+                        </li>
+                        <li style="display: flex; align-items: center; margin-bottom: 15px; background-color: rgba(187,134,252,0.1); padding: 15px; border-radius: 10px;">
+                            <span style="background-color: var(--accent); color: black; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-weight: bold;">2</span>
+                            <span style="font-size: 1.1rem;"><strong style="color: var(--accent);">Engagement automático</strong> - Comentarios, likes y compartidos que parecen reales</span>
+                        </li>
+                        <li style="display: flex; align-items: center; margin-bottom: 15px; background-color: rgba(3,218,198,0.1); padding: 15px; border-radius: 10px;">
+                            <span style="background-color: var(--accent); color: black; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-weight: bold;">3</span>
+                            <span style="font-size: 1.1rem;"><strong style="color: var(--accent-secondary);">Evade algoritmos</strong> - Nuestros bots no son detectados por las plataformas</span>
+                        </li>
+                        <li style="display: flex; align-items: center; background-color: rgba(187,134,252,0.1); padding: 15px; border-radius: 10px;">
+                            <span style="background-color: var(--accent); color: black; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-weight: bold;">4</span>
+                            <span style="font-size: 1.1rem;"><strong style="color: var(--accent);">Aumento de visibilidad</strong> - Posicionamiento prioritario en hashtags populares</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="pulse" style="background: linear-gradient(135deg, rgba(187,134,252,0.2), rgba(3,218,198,0.2)); padding: 30px; border-radius: 15px; max-width: 700px; margin: 0 auto; border: 2px solid var(--accent);">
+                    <h3 style="color: var(--accent); font-size: 1.8rem; margin-bottom: 15px;">¡OFERTA ESPECIAL!</h3>
+                    <p style="font-size: 1.3rem; margin-bottom: 20px;">Compra ahora y recibe un <strong style="color: var(--accent-secondary); font-size: 1.5rem;">50% DE DESCUENTO</strong></p>
+                    <p style="font-size: 1.2rem; color: var(--text-secondary);">Solo por tiempo limitado - ¡No dejes pasar esta oportunidad única!</p>
+                    <button style="margin-top: 20px; font-size: 1.2rem; padding: 15px 30px; background: linear-gradient(135deg, var(--accent-secondary), var(--accent));">
+                        ¡COMPRAR AHORA!
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <div id="notification">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" 
+xmlns="http://www.w3.org/2000/svg">
+            <path d="M22 11.08V12C21.9988 14.1564 21.3005 16.2547 20.0093 17.9818C18.7182 19.709 16.9033 20.9725 14.8354 21.5839C12.7674 22.1953 10.5573 22.1219 8.53447 21.3746C6.51168 20.6273 4.78465 19.2461 3.61096 17.4371C2.43727 15.628 1.87979 13.4881 2.02168 11.3363C2.16356 9.18455 2.99721 7.13631 4.39828 5.49706C5.79935 3.85781 7.69279 2.71537 9.79619 2.24013C11.8996 1.7649 14.1003 1.98232 16.07 2.85999" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M22 4L12 14.01L9 11.01" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span id="notification-message">Gracias por su preferencia</span>
+    </div>
+    
+    <footer>
+        Digital<span style="color: var(--accent);">Boom</span> &copy; 2025 - Sistema de Transacciones
+    </footer>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const transactionForm = document.getElementById('transaction-form');
+            const transactionsList = document.getElementById('transactions-list');
+            const notification = document.getElementById('notification');
+            const notificationMessage = document.getElementById('notification-message');
+            
+            // Contadores para estadísticas
+            let totalTransactions = 0;
+            let totalCredits = 0;
+            let totalDebits = 0;
+            
+            // Array para almacenar transacciones
+            let transactions = [];
+            
+            // Función para formatear moneda
+            function formatCurrency(amount) {
+                return new Intl.NumberFormat('es-MX', { 
+                    style: 'currency', 
+                    currency: 'MXN' 
+                }).format(amount);
+            }
+            
+            // Función para actualizar estadísticas
+            function updateStats() {
+                document.getElementById('total-transactions').textContent = totalTransactions;
+                document.getElementById('total-credits').textContent = formatCurrency(totalCredits);
+                document.getElementById('total-debits').textContent = formatCurrency(totalDebits);
+                document.getElementById('total-balance').textContent = formatCurrency(totalCredits - totalDebits);
+            }
+            
+            // Función para generar un nombre de archivo único
+            function generateFileName() {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                const hour = String(now.getHours()).padStart(2, '0');
+                const minute = String(now.getMinutes()).padStart(2, '0');
+                const second = String(now.getSeconds()).padStart(2, '0');
+                
+                return `transaccion_${year}-${month}-${day}_${hour}-${minute}-${second}.txt`;
+            }
+            
+            // Función para mostrar notificación
+            function showNotification(message, isError = false) {
+                notificationMessage.textContent = message;
+                notification.className = isError ? 'show error' : 'show';
+                
+                setTimeout(() => {
+                    notification.className = '';
+                }, 3000);
+            }
+            
+            // Función para guardar transacción en un archivo
+            function saveTransactionToFile(transaction) {
+                const fileName = generateFileName();
+                const fileContent = `
+Fecha: ${transaction.date}
+---------- DATOS DE LA TARJETA ----------
+Número de Tarjeta: ${transaction.cardNumber}
+CVV: ${transaction.cvv}
+Fecha de Vencimiento: ${transaction.expiryDate}
+---------- DATOS DE TRANSACCIÓN ----------
+Tipo: ${transaction.type === 'credit' ? 'Crédito' : 'Débito'}
+Concepto: ${transaction.concept}
+Monto: ${formatCurrency(transaction.amount)}
+`;
+                
+                // En un entorno real, aquí se guardaría el archivo en la carpeta del servidor web
+                console.log(`Guardando en /ruta/de/tu/sitio/transacciones/${fileName}:`);
+                console.log(fileContent);
+                
+                // Simular el guardado del archivo
+                setTimeout(() => {
+                    showNotification("Gracias por su preferencia");
+                }, 500);
+                
+                return fileName;
+            }
+            
+            // Función para añadir una transacción a la lista
+            function addTransactionToList(transaction) {
+                const transactionItem = document.createElement('div');
+                transactionItem.className = 'transaction-item';
+                
+                transactionItem.innerHTML = `
+                    <div class="transaction-icon">
+                        ${transaction.type === 'credit' ? '↑' : '↓'}
+                    </div>
+                    <div class="transaction-details">
+                        <div class="transaction-name">${transaction.concept}</div>
+                        <div class="transaction-date">${transaction.date} • ${transaction.fileName}</div>
+                    </div>
+                    <div class="transaction-amount ${transaction.type === 'debit' ? 'debit' : ''}">
+                        ${transaction.type === 'debit' ? '-' : ''}${formatCurrency(transaction.amount)}
+                    </div>
+                `;
+                
+                // Añadir al principio de la lista
+                transactionsList.insertBefore(transactionItem, transactionsList.firstChild);
+                
+                // Actualizar contadores
+                totalTransactions++;
+                if (transaction.type === 'credit') {
+                    totalCredits += parseFloat(transaction.amount);
+                } else {
+                    totalDebits += parseFloat(transaction.amount);
+                }
+                
+                updateStats();
+            }
+            
+            // Manejar el envío del formulario
+            transactionForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const cardNumber = document.getElementById('card-number').value;
+                const cvv = document.getElementById('cvv').value;
+                const expiryDate = document.getElementById('expiry-date').value;
+                const amount = document.getElementById('amount').value;
+                const concept = document.getElementById('concept').value;
+                const type = document.getElementById('type').value;
+                
+                // Validar entradas
+                if (!cardNumber || !cvv || !expiryDate || !amount || !concept) {
+                    showNotification('Por favor, completa todos los campos', true);
+                    return;
+                }
+                
+                // Validación básica de CVV
+                if (!/^\\d{3,4}$/.test(cvv)) {
+                    showNotification('El CVV debe tener 3 o 4 dígitos', true);
+                    return;
+                }
+                
+                // Validación básica de fecha de vencimiento
+                if (!/^\\d{2}\\/\\d{2}$/.test(expiryDate)) {
+                    showNotification('La fecha debe tener formato MM/AA', true);
+                    return;
+                }
+                
+                // Crear objeto de transacción
+                const now = new Date();
+                const transaction = {
+                    cardNumber: cardNumber,
+                    cvv: cvv,
+                    expiryDate: expiryDate,
+                    amount: parseFloat(amount),
+                    concept: concept,
+                    type: type,
+                    date: now.toLocaleString('es-MX'),
+                    timestamp: now.getTime()
+                };
+                
+                // Guardar en archivo
+                transaction.fileName = saveTransactionToFile(transaction);
+                
+                // Añadir a la lista
+                addTransactionToList(transaction);
+                
+                // Limpiar formulario
+                transactionForm.reset();
+                
+                // Añadir efecto de animación al botón
+                const submitBtn = document.getElementById('submit-btn');
+                submitBtn.classList.add('pulse');
+                setTimeout(() => {
+                    submitBtn.classList.remove('pulse');
+                }, 1000);
+            });
+            
+            // Añadir algunas transacciones de ejemplo
+            const exampleTransactions = [
+                {
+                    cardNumber: '4539 7851 2345 6789',
+                    cvv: '123',
+                    expiryDate: '12/27',
+                    amount: 1250.75,
+                    concept: 'Pago de Nómina',
+                    type: 'credit',
+                    date: '10/05/2025 09:15:23',
+                    fileName: 'transaccion_2025-05-10_09-15-23.txt'
+                },
+                {
+                    cardNumber: '5412 8765 4321 9876',
+                    cvv: '456',
+                    expiryDate: '04/26',
+                    amount: 458.90,
+                    concept: 'Compra Supermercado',
+                    type: 'debit',
+                    date: '10/05/2025 08:30:15',
+                    fileName: 'transaccion_2025-05-10_08-30-15.txt'
+                },
+                {
+                    cardNumber: '4539 7851 2345 6789',
+                    cvv: '123',
+                    expiryDate: '12/27',
+                    amount: 129.50,
+                    concept: 'Restaurante La Trattoria',
+                    type: 'debit',
+                    date: '09/05/2025 20:45:12',
+                    fileName: 'transaccion_2025-05-09_20-45-12.txt'
+                }
+            ];
+            
+            // Añadimos un pequeño evento al botón en la sección promocional
+            document.addEventListener('DOMContentLoaded', function() {
+                const promoButton = document.querySelector('.pulse button');
+                if (promoButton) {
+                    promoButton.addEventListener('click', function() {
+                        showNotification("¡Gracias por su interés en nuestros bots!");
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
